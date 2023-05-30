@@ -218,7 +218,12 @@ class BaseStructPlatform(BasePlatform, RestoreEntity):
                 if isinstance(v_temp, int) and self._precision == 0:
                     v_result.append(str(v_temp))
                 else:
-                    v_result.append(f"{float(v_temp):.{self._precision}f}")
+                    # NaN float detection replace with None
+                    # Issue: https://github.com/home-assistant/core/issues/93297
+                    if v_temp != v_temp:
+                        v_result.append(None)
+                    else:
+                        v_result.append(f"{float(v_temp):.{self._precision}f}")
             return ",".join(map(str, v_result))
 
         # Apply scale, precision, limits to floats and ints
@@ -229,7 +234,13 @@ class BaseStructPlatform(BasePlatform, RestoreEntity):
         # the conversion only when it's absolutely necessary.
         if isinstance(val_result, int) and self._precision == 0:
             return str(val_result)
-        return f"{float(val_result):.{self._precision}f}"
+        else:
+            # NaN float detection replace with None
+            # Issue: https://github.com/home-assistant/core/issues/93297
+            if val_result != val_result:
+                return None
+            else:
+                return f"{float(val_result):.{self._precision}f}"
 
 
 class BaseSwitch(BasePlatform, ToggleEntity, RestoreEntity):
